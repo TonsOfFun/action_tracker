@@ -23,6 +23,15 @@ class IssueToolsTest < ActiveSupport::TestCase
     assert_equal [ @crash.id, @report.id ], found[:results].pluck(:id)
   end
 
+  test "lists leave the description out, and get_issue returns it" do
+    @crash.update!(body: "NoMethodError in PaymentsController#create")
+
+    assert_not IssueTools.call("find_issues", priority: "urgent")[:results].sole.key?(:body)
+    assert_not IssueTools.call("search_issues", query: "gift")[:results].first.key?(:body)
+    assert_equal "NoMethodError in PaymentsController#create", IssueTools.call("get_issue", id: @crash.id)[:body]
+    assert_match(/No issue found/, IssueTools.call("get_issue", id: 0)[:error])
+  end
+
   test "search leaves closed issues out unless asked" do
     @report.update!(status: "closed")
 
