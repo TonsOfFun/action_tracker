@@ -18,4 +18,10 @@ module ApplicationHelper
       safe_join([ label, (tag.span(count, class: "chip-count") if count) ].compact, " ")
     end
   end
+
+  # An agent's reply as HTML: paragraphs and line breaks, plus the **bold** a
+  # model reaches for even when asked for plain text.
+  def agent_reply(text)
+    simple_format(h(text).gsub(/\*\*(.+?)\*\*/, '<strong>\1</strong>'), {}, sanitize: false)
+  end
 end

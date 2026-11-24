@@ -1,6 +1,6 @@
 # Builds evaluation scenarios from the conversations people have had with an
-# agent: every user message becomes a scenario, keyed by its text so running
-# this again adds only what is new.
+# agent: every message sent from the chat panel becomes a scenario, keyed by
+# its text so running this again adds only what is new.
 #
 # Where the agent answered a message by calling tools, those tools become the
 # scenario's expectation: a later version of the agent that stops reaching for
@@ -26,14 +26,10 @@ class ConversationScenarios
   private
 
   def turns
-    contexts = ActionAgent::AgentContext.where(contextable: @agent).order(:id)
-    contexts.flat_map do |context|
-      context.messages.chronological.where(role: %w[user tool]).slice_before { |message| message.role == "user" }
-        .filter_map do |user, *tool_rows|
-          next unless user.role == "user" && user.content.present?
+    Assistant.chat_runs(@agent).filter_map do |run|
+      next unless run.complete? && run.input_prompt.present?
 
-          { prompt: user.content.strip, tools: tool_rows.filter_map(&:tool_name).uniq }
-        end
+      { prompt: run.input_prompt.strip, tools: Assistant.tools_called(run) }
     end
   end
 end

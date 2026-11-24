@@ -34,20 +34,30 @@ class Assistant
         ).tap { |context| session[:assistant_context_id] = context.id }
     end
 
+    # The conversation as the panel shows it, built from the agent's runs
+    # pinned to this session's conversation: what was asked, what came back,
+    # and the tools each answer called. Runs record tool calls the same way
+    # for every provider, and an evaluation's replays, which are not pinned,
+    # stay out of it.
     def turns(agent, session)
-      context = ActionAgent::AgentContext.find_by(id: session[:assistant_context_id], contextable: agent)
-      return [] unless context
+      id = session[:assistant_context_id]
+      return [] unless id
 
-      tools = []
-      context.messages.chronological.where(role: %w[user assistant tool]).filter_map do |message|
-        if message.role == "tool"
-          tools << message.tool_name
-          next
-        end
-        next if message.content.blank?
-
-        Turn.new(role: message.role, content: message.content, tools: tools.compact.uniq).tap { tools = [] }
+      chat_runs(agent).select { |run| run.input_params["context_id"].to_i == id.to_i }.flat_map do |run|
+        answer = run.output.presence || run.error_message.presence
+        [ Turn.new(role: "user", content: run.input_prompt, tools: []),
+          (Turn.new(role: "assistant", content: answer, tools: tools_called(run)) if answer) ].compact
       end
+    end
+
+    # Runs a person started from the chat panel, oldest first.
+    def chat_runs(agent)
+      agent.agent_runs.where(status: %i[complete failed]).order(:id)
+        .select { |run| run.input_params.to_h["context_id"].present? }
+    end
+
+    def tools_called(run)
+      Array(run.output_metadata.to_h["tool_calls"]).map { |call| call.is_a?(Hash) ? call["name"] : call }.compact.uniq
     end
   end
 end

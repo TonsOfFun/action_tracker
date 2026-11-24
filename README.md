@@ -27,6 +27,19 @@ bin/rails server
 Open <http://localhost:3000>. The tracker works straight away; the chat
 panel says there is no agent yet.
 
+The agent can also run through OpenRouter: put `OPENROUTER_API_KEY` in
+`.env`, pick the Openrouter provider in the builder and a model such as
+`anthropic/claude-haiku-4.5`.
+
+The evaluation in part 3 depends on a judge fix that ships in activeagent
+1.9.10 (the judge is shown the tools behind an answer). Until that release,
+run against a checkout of the framework that has it:
+
+```bash
+ACTIVEAGENT_PATH=../activeagent bundle install
+ACTIVEAGENT_PATH=../activeagent bin/rails server
+```
+
 No key to hand? `bin/rehearse` runs the same app against a scripted stand-in
 for the model (`script/rehearsal_provider.rb`), with no network. It answers
 the prompts below and a few like them, and it is what every step of this
@@ -61,7 +74,8 @@ route through the tools.
    - `How many open issues are there?`
 
    The third one is the beat: the agent finds the owner, then says it has no
-   tool for changing issues.
+   tool for changing issues. On `anthropic/claude-haiku-4.5` each answer
+   took two to four seconds in rehearsal.
 
 ### 2. What it did (about 4 minutes)
 
@@ -89,10 +103,19 @@ route through the tools.
    called *Real conversations*. Where the agent answered by calling tools,
    those tools are the scenario's expectation
    (`app/models/conversation_scenarios.rb`).
-2. **Evaluations** → *Real conversations* → **Run 4 scenarios**. Each scenario
-   is replayed through the agent and judged.
-3. Three of four pass. Open the failure and **What to fix**: the agent was
-   asked to change an issue and has no tool that can.
+2. **Evaluations** → *Real conversations* → **Edit scenarios**. Each line is
+   a message and the tools its answer called. The trace recorded what the
+   agent did; here you say what it should have done. On the "Assign #14"
+   line, change the expected tool to `update_issue`:
+
+   ```text
+   Assign #14 to whoever owns auth | tools: update_issue | key: chat-...
+   ```
+
+   **Save scenarios**.
+3. **Run 4 scenarios**. Each scenario is replayed through the agent and
+   judged. Three of four pass. Open **What to fix**: *missing capability*,
+   with `update_issue` as the suggested tool.
 4. **Agents** → *Issue Agent* → the **Tools** tab. Click the `update_issue`
    row to switch it on, then **Save Changes**. (The Approval column on the
    same row is where a tool can be held for a person to approve each call.)
@@ -102,10 +125,15 @@ route through the tools.
 6. If there is time and a second key: type another model into the models
    field (`gpt-4o-mini`) and run once more to compare the two.
 
+Do not skip the edit in step 2. Without a stated expectation the failure
+rests on the judge model's opinion of "I can't do that", and judges differ:
+in rehearsal one judge model failed that answer and a stronger one passed
+it. The expected tool makes the result a rule, the same on every run.
+
 A replay is a real run: scenario 3 really assigns #14. Reset before the next
 rehearsal.
 
-### 4. Make it cheaper, and open the pull request (about 5 minutes)
+### 4. Make it cheaper, and open the pull request (about 3 minutes on stage)
 
 Part 3 fixed what the agent could not do. This part cuts what it costs, with
 the same suite as the safety net, and ends on a pull request the dashboard
@@ -127,9 +155,11 @@ the offline stand-in, cut the suite's input by about a third (26,110 to
 17,757 estimated tokens) with all four scenarios still passing. Measure it
 again on a real model: the proportions will differ.
 
+**Before the talk** (the slow steps, done once and left ready):
+
 1. **Projects** → **New Project** → pick this repository. The dashboard
    clones it and boots a second copy of the app beside itself: a checkout
-   sandbox. Start this before the talk; the first boot runs `bundle install`.
+   sandbox. The first boot runs `bundle install`.
 2. In the sandbox, start a **Claude Code** session and ask for the change:
 
    > In app/agent_tools/issue_tools.rb: keep only status, priority, component
@@ -139,18 +169,26 @@ again on a real model: the proportions will differ.
 
 3. **Evaluations** → *Real conversations*. Next to the models field, choose
    the sandbox under **Run against sandbox**, then **Run 4 scenarios**. Every
-   replay now calls the changed tools in the copy, not the ones in the
-   running app.
-4. Compare the run with the one before it: the same four of four, fewer input
-   tokens, lower cost per scenario.
-5. Back on the sandbox, **Open draft PR**: review the diff, publish. The pull
-   request appears on GitHub.
+   replay calls the changed tools in the copy, not the ones in the running
+   app. Leave the finished run and the sandbox open in two tabs.
+
+**On stage** (the quick steps):
+
+4. Show the finished coding session and its diff: what was asked, what
+   changed.
+5. Show the run against the sandbox beside the one before it: the same four
+   of four, fewer input tokens, lower cost per scenario.
+6. On the sandbox, **Open draft PR**: review the diff, publish. Switch to
+   GitHub and show the pull request.
+
+Close any pull request left over from a rehearsal first, so the one opened on
+stage is the only one.
 
 If the coding session misbehaves on the day, the branch
 `lean-issue-lists` holds the same change, already written. Start the sandbox
 from that branch and carry on from step 3.
 
-Steps 1, 2 and 5 follow the dashboard's documentation and have not been
+Steps 1, 2 and 6 follow the dashboard's documentation and have not been
 rehearsed end to end in this repository: walk through them before the day.
 
 One-time setup for this part:

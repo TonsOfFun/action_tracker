@@ -9,17 +9,18 @@ namespace :tracker do
     Rails.application.load_seed
   end
 
-  desc "Create the Issue Agent as the talk builds it by hand: read-only. WRITES=1 also grants the tools that change issues"
+  desc "Create the Issue Agent as the talk builds it by hand: read-only. WRITES=1 also grants the tools that change issues; TRACKER_PROVIDER=openrouter runs it there"
   task agent: :environment do
     reads  = IssueTools.tool_names + UserTools.tool_names + %w[find_comments]
     writes = %w[create_issue update_issue add_comment]
 
+    provider = ENV.fetch("TRACKER_PROVIDER", "anthropic")
     agent = ActionAgent::Agent.find_or_initialize_by(slug: Assistant::SLUG)
     agent.update!(
       name: "Issue Agent",
       description: "Answers questions about the Action Tracker backlog and, when allowed, triages it.",
-      provider: "anthropic",
-      model: ActiveAgent.configuration[:anthropic][:model],
+      provider: provider,
+      model: ActiveAgent.configuration[provider][:model],
       status: :active,
       instructions: Rails.root.join("docs/issue_agent_instructions.md").read,
       tools: ENV["WRITES"] ? reads + writes : reads
