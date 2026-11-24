@@ -18,11 +18,18 @@ default: &default
     service: "OpenAI"
     access_token: <%= ENV["OPENAI_API_KEY"] %>
     model: "gpt-4o-mini"
-  # Traces from agents run in the tracker's own code are stored in this app's
-  # database, where the mounted dashboard reads them.
+  # Where traces go. By default they are stored in this app's database, where
+  # the mounted dashboard reads them. Set ACTIVEAGENTS_API_KEY and they are
+  # sent to a hosted workspace on activeagents.ai instead (or to the endpoint
+  # in ACTIVEAGENTS_TRACES_ENDPOINT).
   telemetry:
     enabled: true
+<% if ENV["ACTIVEAGENTS_API_KEY"].present? %>
+    endpoint: <%= ENV.fetch("ACTIVEAGENTS_TRACES_ENDPOINT", "https://api.activeagents.ai/v1/traces") %>
+    api_key: <%= ENV["ACTIVEAGENTS_API_KEY"] %>
+<% else %>
     local_storage: true
+<% end %>
 
 development:
   <<: *default

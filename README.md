@@ -111,18 +111,29 @@ Part 3 fixed what the agent could not do. This part cuts what it costs, with
 the same suite as the safety net, and ends on a pull request the dashboard
 opens against this repository.
 
-The waste is in the traces from part 2. `find_issues` and `search_issues`
-return every issue's full description, and on the seeded backlog that is
-about a third of each result (a list of the 19 open issues is 7,002 bytes
-with descriptions and 4,866 without). The model reads all of it on every
-call and almost never needs it to answer a list question.
+The waste is in the traces from part 2: input tokens dwarf output tokens on
+every call. Most of that input is not the conversation. It is the tool
+definitions, sent to the model with every request:
+
+- `find_issues` and `count_issues` accept seven filters, and each filterable
+  column adds its range and presence forms to both schemas. The four
+  conversations used four of them.
+- The list tools return every issue's full description: about a third of
+  each result (the 19 open issues are 7,002 bytes with descriptions, 4,866
+  without).
+
+Trimming both takes the tool schemas from 12,302 bytes to 8,569 and, against
+the offline stand-in, cut the suite's input by about a third (26,110 to
+17,757 estimated tokens) with all four scenarios still passing. Measure it
+again on a real model: the proportions will differ.
 
 1. **Projects** → **New Project** → pick this repository. The dashboard
    clones it and boots a second copy of the app beside itself: a checkout
    sandbox. Start this before the talk; the first boot runs `bundle install`.
 2. In the sandbox, start a **Claude Code** session and ask for the change:
 
-   > In app/agent_tools/issue_tools.rb, stop returning the issue body from
+   > In app/agent_tools/issue_tools.rb: keep only status, priority, component
+   > and assignee_id filterable, and stop returning the issue body from
    > find_issues and search_issues. get_issue should still return it. Update
    > the tests.
 
@@ -153,6 +164,22 @@ One-time setup for this part:
 
 Only run this on your own machine: a local sandbox runs the checkout's code
 as your user.
+
+## Sending traces to a hosted workspace
+
+By default traces are stored in this app's database and read in the dashboard
+mounted at `/activeagents`. To show the same traces arriving in a hosted
+workspace on [activeagents.ai](https://activeagents.ai), put an API key from
+that workspace (Settings → API Keys) in `.env` and restart:
+
+```bash
+ACTIVEAGENTS_API_KEY=aa_...
+```
+
+Every message sent to the agent is then also reported to the workspace, with
+its model call and tool calls. The mounted dashboard keeps its own copy, so
+the local demo is unaffected. This was checked against a local stand-in for
+the collector, not against the hosted service itself.
 
 ## Between rehearsals
 
