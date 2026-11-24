@@ -4,7 +4,10 @@
 class IssueTools < ActiveAgent::SchemaTools
   model Issue
 
-  filterable :status, :priority, :component, :assignee_id, :reporter_id, :duplicate_of_id, :created_at
+  # Only the filters real questions used. Each filterable column adds its
+  # range and presence forms to the schema of find_issues and count_issues,
+  # and that schema is sent to the model on every call.
+  filterable :status, :priority, :component, :assignee_id
   # No :body here: a list of issues is read on almost every question, and
   # the descriptions were about a third of every result. get_issue, below,
   # is where one issue's description is read.
