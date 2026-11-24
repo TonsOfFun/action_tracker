@@ -105,7 +105,7 @@ route through the tools.
 A replay is a real run: scenario 3 really assigns #14. Reset before the next
 rehearsal.
 
-### 4. Make it cheaper, and open the pull request (about 5 minutes)
+### 4. Make it cheaper, and open the pull request (about 3 minutes on stage)
 
 Part 3 fixed what the agent could not do. This part cuts what it costs, with
 the same suite as the safety net, and ends on a pull request the dashboard
@@ -127,9 +127,11 @@ the offline stand-in, cut the suite's input by about a third (26,110 to
 17,757 estimated tokens) with all four scenarios still passing. Measure it
 again on a real model: the proportions will differ.
 
+**Before the talk** (the slow steps, done once and left ready):
+
 1. **Projects** → **New Project** → pick this repository. The dashboard
    clones it and boots a second copy of the app beside itself: a checkout
-   sandbox. Start this before the talk; the first boot runs `bundle install`.
+   sandbox. The first boot runs `bundle install`.
 2. In the sandbox, start a **Claude Code** session and ask for the change:
 
    > In app/agent_tools/issue_tools.rb: keep only status, priority, component
@@ -139,18 +141,26 @@ again on a real model: the proportions will differ.
 
 3. **Evaluations** → *Real conversations*. Next to the models field, choose
    the sandbox under **Run against sandbox**, then **Run 4 scenarios**. Every
-   replay now calls the changed tools in the copy, not the ones in the
-   running app.
-4. Compare the run with the one before it: the same four of four, fewer input
-   tokens, lower cost per scenario.
-5. Back on the sandbox, **Open draft PR**: review the diff, publish. The pull
-   request appears on GitHub.
+   replay calls the changed tools in the copy, not the ones in the running
+   app. Leave the finished run and the sandbox open in two tabs.
+
+**On stage** (the quick steps):
+
+4. Show the finished coding session and its diff: what was asked, what
+   changed.
+5. Show the run against the sandbox beside the one before it: the same four
+   of four, fewer input tokens, lower cost per scenario.
+6. On the sandbox, **Open draft PR**: review the diff, publish. Switch to
+   GitHub and show the pull request.
+
+Close any pull request left over from a rehearsal first, so the one opened on
+stage is the only one.
 
 If the coding session misbehaves on the day, the branch
 `lean-issue-lists` holds the same change, already written. Start the sandbox
 from that branch and carry on from step 3.
 
-Steps 1, 2 and 5 follow the dashboard's documentation and have not been
+Steps 1, 2 and 6 follow the dashboard's documentation and have not been
 rehearsed end to end in this repository: walk through them before the day.
 
 One-time setup for this part:
