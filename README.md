@@ -34,7 +34,7 @@ runbook was checked against. It is a script, not a model, so rehearse with a
 real key too: a model will phrase things differently and may take another
 route through the tools.
 
-## The demo, in three parts
+## The demo, in four parts
 
 ### 1. The app, then an agent for it (about 6 minutes)
 
@@ -105,6 +105,52 @@ route through the tools.
 A replay is a real run: scenario 3 really assigns #14. Reset before the next
 rehearsal.
 
+### 4. Make it cheaper, and open the pull request (about 5 minutes)
+
+Part 3 fixed what the agent could not do. This part cuts what it costs, with
+the same suite as the safety net, and ends on a pull request the dashboard
+opens against this repository.
+
+The waste is in the traces from part 2. `find_issues` and `search_issues`
+return every issue's full description, and on the seeded backlog that is
+about a third of each result (a list of the 19 open issues is 7,002 bytes
+with descriptions and 4,866 without). The model reads all of it on every
+call and almost never needs it to answer a list question.
+
+1. **Projects** → **New Project** → pick this repository. The dashboard
+   clones it and boots a second copy of the app beside itself: a checkout
+   sandbox. Start this before the talk; the first boot runs `bundle install`.
+2. In the sandbox, start a **Claude Code** session and ask for the change:
+
+   > In app/agent_tools/issue_tools.rb, stop returning the issue body from
+   > find_issues and search_issues. get_issue should still return it. Update
+   > the tests.
+
+3. **Evaluations** → *Real conversations*. Next to the models field, choose
+   the sandbox under **Run against sandbox**, then **Run 4 scenarios**. Every
+   replay now calls the changed tools in the copy, not the ones in the
+   running app.
+4. Compare the run with the one before it: the same four of four, fewer input
+   tokens, lower cost per scenario.
+5. Back on the sandbox, **Open draft PR**: review the diff, publish. The pull
+   request appears on GitHub.
+
+If the coding session misbehaves on the day, the branch
+`lean-issue-lists` holds the same change, already written. Start the sandbox
+from that branch and carry on from step 3.
+
+One-time setup for this part:
+
+- A GitHub OAuth app (github.com/settings/developers) with the callback URL
+  `http://localhost:3000/activeagents/api/github_connection/callback`; put
+  its id and secret in `.env` as `GITHUB_CLIENT_ID` and
+  `GITHUB_CLIENT_SECRET`, then connect under Settings → Integrations.
+- Claude Code installed and signed in on this machine (`claude /login`).
+- **Projects** → **New Project** shows a checklist of anything still missing.
+
+Only run this on your own machine: a local sandbox runs the checkout's code
+as your user.
+
 ## Between rehearsals
 
 | Command | What it does |
@@ -131,7 +177,7 @@ to step 6 in one command.
 ## How it is wired
 
 - `config/initializers/action_agent.rb` names the tool classes the agent
-  editor offers, and keeps them off the dashboard's own MCP endpoint.
+  editor offers, and turns on local checkout sandboxes for part 4.
 - `config/active_agent.yml` configures the providers and stores traces in
   this app's database, where the mounted dashboard reads them.
 - The framework and the dashboard are two gems, `activeagent` and
