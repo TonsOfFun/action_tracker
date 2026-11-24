@@ -74,7 +74,8 @@ route through the tools.
    - `How many open issues are there?`
 
    The third one is the beat: the agent finds the owner, then says it has no
-   tool for changing issues.
+   tool for changing issues. On `anthropic/claude-haiku-4.5` each answer
+   took two to four seconds in rehearsal.
 
 ### 2. What it did (about 4 minutes)
 
@@ -102,10 +103,19 @@ route through the tools.
    called *Real conversations*. Where the agent answered by calling tools,
    those tools are the scenario's expectation
    (`app/models/conversation_scenarios.rb`).
-2. **Evaluations** → *Real conversations* → **Run 4 scenarios**. Each scenario
-   is replayed through the agent and judged.
-3. Three of four pass. Open the failure and **What to fix**: the agent was
-   asked to change an issue and has no tool that can.
+2. **Evaluations** → *Real conversations* → **Edit scenarios**. Each line is
+   a message and the tools its answer called. The trace recorded what the
+   agent did; here you say what it should have done. On the "Assign #14"
+   line, change the expected tool to `update_issue`:
+
+   ```text
+   Assign #14 to whoever owns auth | tools: update_issue | key: chat-...
+   ```
+
+   **Save scenarios**.
+3. **Run 4 scenarios**. Each scenario is replayed through the agent and
+   judged. Three of four pass. Open **What to fix**: *missing capability*,
+   with `update_issue` as the suggested tool.
 4. **Agents** → *Issue Agent* → the **Tools** tab. Click the `update_issue`
    row to switch it on, then **Save Changes**. (The Approval column on the
    same row is where a tool can be held for a person to approve each call.)
@@ -114,6 +124,11 @@ route through the tools.
    saying why.
 6. If there is time and a second key: type another model into the models
    field (`gpt-4o-mini`) and run once more to compare the two.
+
+Do not skip the edit in step 2. Without a stated expectation the failure
+rests on the judge model's opinion of "I can't do that", and judges differ:
+in rehearsal one judge model failed that answer and a stronger one passed
+it. The expected tool makes the result a rule, the same on every run.
 
 A replay is a real run: scenario 3 really assigns #14. Reset before the next
 rehearsal.
