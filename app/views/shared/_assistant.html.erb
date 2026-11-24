@@ -29,7 +29,7 @@
           <% if turn.tools.any? %>
             <p class="turn-tools"><% turn.tools.each do |tool| %><code><%= tool %></code><% end %></p>
           <% end %>
-          <%= simple_format(turn.content) %>
+          <%= agent_reply(turn.content) %>
         </div>
       <% end %>
     </div>

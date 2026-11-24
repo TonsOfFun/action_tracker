@@ -14,6 +14,11 @@ default: &default
     # bin/rehearse points this at the scripted stand-in (script/rehearsal_provider.rb).
     base_url: <%= ENV.fetch("ANTHROPIC_BASE_URL", "https://api.anthropic.com") %>
     model: <%= ENV.fetch("TRACKER_MODEL", "claude-haiku-4-5") %>
+  # One key, many models, Claude among them ("anthropic/claude-haiku-4.5").
+  openrouter:
+    service: "OpenRouter"
+    access_token: <%= ENV["OPENROUTER_API_KEY"] %>
+    model: "anthropic/claude-haiku-4.5"
   openai:
     service: "OpenAI"
     access_token: <%= ENV["OPENAI_API_KEY"] %>

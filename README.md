@@ -27,6 +27,19 @@ bin/rails server
 Open <http://localhost:3000>. The tracker works straight away; the chat
 panel says there is no agent yet.
 
+The agent can also run through OpenRouter: put `OPENROUTER_API_KEY` in
+`.env`, pick the Openrouter provider in the builder and a model such as
+`anthropic/claude-haiku-4.5`.
+
+The evaluation in part 3 depends on a judge fix that ships in activeagent
+1.9.10 (the judge is shown the tools behind an answer). Until that release,
+run against a checkout of the framework that has it:
+
+```bash
+ACTIVEAGENT_PATH=../activeagent bundle install
+ACTIVEAGENT_PATH=../activeagent bin/rails server
+```
+
 No key to hand? `bin/rehearse` runs the same app against a scripted stand-in
 for the model (`script/rehearsal_provider.rb`), with no network. It answers
 the prompts below and a few like them, and it is what every step of this

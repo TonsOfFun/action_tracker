@@ -63,4 +63,7 @@ Rails.application.configure do
 
   # Raise error when a before_action's only/except options reference missing actions.
   config.action_controller.raise_on_missing_callback_actions = true
+
+  # The app's own address. OpenRouter requests carry it as the site URL.
+  routes.default_url_options = { host: "localhost", port: 3000, protocol: "http" }
 end
