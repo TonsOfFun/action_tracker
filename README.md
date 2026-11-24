@@ -139,6 +139,9 @@ If the coding session misbehaves on the day, the branch
 `lean-issue-lists` holds the same change, already written. Start the sandbox
 from that branch and carry on from step 3.
 
+Steps 1, 2 and 5 follow the dashboard's documentation and have not been
+rehearsed end to end in this repository: walk through them before the day.
+
 One-time setup for this part:
 
 - A GitHub OAuth app (github.com/settings/developers) with the callback URL
